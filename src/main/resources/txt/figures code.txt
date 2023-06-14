@@ -1,0 +1,7 @@
+0 0 0 0 0 0 0 0 - blank		0
+0 0 0 0 0 0 1 * - pawn		2 or 3
+0 0 0 0 0 1 0 * - bishop	4 or 5
+0 0 0 0 1 0 0 * - knight	8 or 9
+0 0 0 1 0 0 0 * - rook		16 or 17
+0 0 1 0 0 0 0 * - king		32 or 33
+0 1 0 0 0 0 0 * - queen		64 or 65
