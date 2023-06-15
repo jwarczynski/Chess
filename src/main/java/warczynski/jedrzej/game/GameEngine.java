@@ -1,10 +1,10 @@
-package warczynski.jedrzej;
+package warczynski.jedrzej.game;
 
 import warczynski.jedrzej.constants.Constants;
 import warczynski.jedrzej.constants.PieceCodes;
+import warczynski.jedrzej.pieces.Piece;
+import warczynski.jedrzej.pieces.Queen;
 
-import javax.swing.*;
-import java.io.IOException;
 
 import static warczynski.jedrzej.constants.Constants.*;
 
@@ -20,11 +20,9 @@ public class GameEngine {
 
     private Board board;
     private Player[] players;
-    private final JPanel jPanel;
 
-    public GameEngine(JPanel jPanel) {
+    public GameEngine() {
         initGame();
-        this.jPanel = jPanel;
     }
 
     private void initGame() {
@@ -64,7 +62,6 @@ public class GameEngine {
     public void handleMouseDrag(int x, int y) {
         if (selectedPiece != null) {
             selectedPiece.setXY(x, y);
-            jPanel.repaint();
         }
     }
 
@@ -104,7 +101,6 @@ public class GameEngine {
             morphingPawnY = targetY;
             isChoosingMorphedPiece = true;
             selectedPiece = null;
-            jPanel.repaint();
         } else {
             updateKingPositionIfNeeded(targetX, targetY);
             prepareNextTurn();
@@ -121,7 +117,6 @@ public class GameEngine {
 
     private void nextTurnIfMorphPieceSelected() {
         if (!isChoosingMorphedPiece) {
-            jPanel.repaint();
             morphingPawnX = -1;
             morphingPawnY = -1;
             prepareNextTurn();

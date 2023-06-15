@@ -1,4 +1,6 @@
-package warczynski.jedrzej;
+package warczynski.jedrzej.game;
+
+import warczynski.jedrzej.pieces.King;
 
 import java.util.HashMap;
 import java.util.Map;

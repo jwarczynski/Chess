@@ -1,4 +1,6 @@
-package warczynski.jedrzej;
+package warczynski.jedrzej.game;
+import warczynski.jedrzej.pieces.*;
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Scanner;
@@ -74,7 +76,7 @@ public class Board{
         return board;
     }
 
-    public Piece getOccupyingPiece(int x,int y)
+    public Piece getOccupyingPiece(int x, int y)
     {
         return board[x][y].getOccupyingPiece();
     }

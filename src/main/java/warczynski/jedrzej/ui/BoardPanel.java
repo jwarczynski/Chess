@@ -1,6 +1,8 @@
-package warczynski.jedrzej;
+package warczynski.jedrzej.ui;
 
+import warczynski.jedrzej.game.GameEngine;
 import warczynski.jedrzej.constants.Constants;
+import warczynski.jedrzej.pieces.Piece;
 
 import java.io.IOException;
 import javax.imageio.ImageIO;
@@ -22,7 +24,7 @@ import java.util.Objects;
 import static warczynski.jedrzej.constants.Constants.*;
 import static warczynski.jedrzej.constants.PiecesImagesPaths.*;
 
-public class UI extends JPanel {
+public class BoardPanel extends JPanel {
 
     private static final Color GREEN_COLOR = new Color(119, 148, 85);
     private static final Color WHITE_COLOR = new Color(235, 235, 208);
@@ -36,10 +38,10 @@ public class UI extends JPanel {
 
     private final GameEngine gameEngine;
 
-    public UI() throws IOException {
+    public BoardPanel() throws IOException {
         initUI();
         repaint();
-        gameEngine = new GameEngine(this);
+        gameEngine = new GameEngine();
     }
 
     private void initUI() throws IOException {
@@ -111,7 +113,6 @@ public class UI extends JPanel {
         paintBoard(g);
         drawPieces(g);
         drawPieceChooseMenuIfPawnReachBoardEnd(g);
-//        repaint();
     }
 
     private void drawPieceChooseMenuIfPawnReachBoardEnd(Graphics g) {
@@ -201,16 +202,13 @@ public class UI extends JPanel {
         public void mousePressed(MouseEvent e) {
             int mouseX = e.getX() / Constants.SQUARE_SIZE;
             int mouseY = e.getY() / Constants.SQUARE_SIZE;
-
             gameEngine.handleMouseClick(mouseX, mouseY);
-//            updateUI();
-            repaint();
         }
 
 
         public void mouseReleased(MouseEvent e) {
             gameEngine.handleMouseRelease();
-//            repaint();
+            repaint();
         }
     }
 

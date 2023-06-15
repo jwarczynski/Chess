@@ -1,4 +1,4 @@
-package warczynski.jedrzej;
+package warczynski.jedrzej.game;
 public class Point {
     public int x;
     public int y;

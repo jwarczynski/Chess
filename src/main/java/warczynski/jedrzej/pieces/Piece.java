@@ -1,9 +1,11 @@
-package warczynski.jedrzej;
+package warczynski.jedrzej.pieces;
+import warczynski.jedrzej.game.Board;
+import warczynski.jedrzej.game.Point;
 import warczynski.jedrzej.constants.Constants;
 
 import java.util.Vector;
 
-abstract class Piece {
+public abstract class Piece {
 
     protected final int type;
     protected final Point starting_coordinates;
@@ -56,11 +58,11 @@ abstract class Piece {
         return legal_captures;
     }
 
-    protected void clearPreviousMoves()
+    public void clearPreviousMoves()
     {
         legal_moves.clear();
     }
-    protected void clearPreviousCaptures()
+    public void clearPreviousCaptures()
     {
         legal_captures.clear();
     }
