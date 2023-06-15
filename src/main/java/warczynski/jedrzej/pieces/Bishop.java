@@ -1,4 +1,8 @@
-package warczynski.jedrzej;
+package warczynski.jedrzej.pieces;
+
+import warczynski.jedrzej.game.Board;
+import warczynski.jedrzej.game.Point;
+
 public class Bishop extends Piece {
     
     public Bishop(int type_code, int start_x, int start_y)

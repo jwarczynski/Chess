@@ -1,6 +1,9 @@
 package warczynski.jedrzej.constants;
 
 public class PieceCodes {
+    public static final int BLANK = 0;
+    public static final int PAWN = 2;
+
     public static final int WHITE_BISHOP = 4;
     public static final int BLACK_BISHOP = 5;
     public static final int WHITE_KNIGHT = 8;

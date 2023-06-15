@@ -1,4 +1,8 @@
-package warczynski.jedrzej;
+package warczynski.jedrzej.pieces;
+
+import warczynski.jedrzej.game.Board;
+import warczynski.jedrzej.game.Point;
+
 public class Pawn extends Piece {
     
     public Pawn(int type, int start_x, int start_y)

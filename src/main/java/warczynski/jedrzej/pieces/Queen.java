@@ -1,4 +1,8 @@
-package warczynski.jedrzej;
+package warczynski.jedrzej.pieces;
+
+import warczynski.jedrzej.game.Board;
+import warczynski.jedrzej.game.Point;
+
 public class Queen extends Piece{
     
     public Queen(int type_code, int start_x, int start_y)
