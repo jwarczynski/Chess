@@ -1,4 +1,6 @@
 package warczynski.jedrzej;
+import warczynski.jedrzej.constants.Constants;
+
 import java.util.Vector;
 
 abstract class Piece {
@@ -21,7 +23,7 @@ abstract class Piece {
         starting_coordinates = new Point(start_x, start_y);
         starting_coordinates.x = start_x;
         starting_coordinates.y= start_y;
-        x = start_x*Constants.SQUARE_SIZE;
+        x = start_x* Constants.SQUARE_SIZE;
         y = start_y*Constants.SQUARE_SIZE;
     }
 

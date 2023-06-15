@@ -1,5 +1,8 @@
 package warczynski.jedrzej;
 
+import warczynski.jedrzej.constants.Constants;
+import warczynski.jedrzej.constants.PieceCodes;
+
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -17,220 +20,345 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseMotionAdapter;
 import java.util.Objects;
 
+import static warczynski.jedrzej.constants.Constants.*;
+import static warczynski.jedrzej.constants.PiecesImagesPaths.*;
+
 public class Chess extends JPanel {
 
-    JLabel label;
+    private static final String FONT = "MV Boli";
+    private static final int FONT_SIZE = 50;
+    private static final int FOREGROUND_COLOR = 0x3f3e3e;
+    private static final String END_OF_GAME_TEXT = "END OF GAME";
+    private static final Color WHITE_COLOR = new Color(235, 235, 208);
+    private static final Color BLACK_COLOR = new Color(119, 148, 85);
+
+    JLabel endOfGameLabel;
     Board board;
     Player[] players;
-    BufferedImage buf_img;
+    BufferedImage pieceIcons;
     Image[] img;
     Piece selectedPiece = null;
     private int TURN = 0;
-    private int prev_x = 0;
-    private int prev_y = 0;
-    private int x_piece = -1;
-    private int y_piece = -1;
-    private boolean choosing = false;
-    boolean end = false;
+    private int currentX = 0;
+    private int currentY = 0;
+    private int morphingPawnX = -1;
+    private int morphingPawnY = -1;
+    private boolean isChoosingMorphedPiece = false;
+    boolean isEnd = false;
 
     public Chess() throws IOException {
+        initGame();
+        repaint();
+        setEndOfGameLabel();
+    }
+
+    private void initGame() throws IOException {
+        initUI();
+        initGameObjects();
+        computeInitialMoves();
+    }
+
+    private void computeInitialMoves() {
+        players[0].computePossibleMoves(board);
+    }
+
+    private void initUI() {
+        initUIListeners();
+
+        Border border = BorderFactory.createLineBorder(Color.white, 5);
+        this.setBorder(border);
+    }
+
+    private void initUIListeners() {
         ClickListener clickListener = new ClickListener();
         DragListener dragListener = new DragListener();
         this.addMouseListener(clickListener);
         this.addMouseMotionListener(dragListener);
+    }
+
+    private void initGameObjects() throws IOException {
         board = new Board();
-        players = new Player[2];
-        players[0] = new Player(Constants.WHITE, 3, 0);
-        players[1] = new Player(Constants.BLACK, 3, 7);
-        img = new Image[12];
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/wpawn.png")));
-        img[0] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/bpawn.png")));
-        img[1] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/wknight.png")));
-        img[2] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/bknight.png")));
-        img[3] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/wbishop.png")));
-        img[4] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/bbishop.png")));
-        img[5] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/wrook.png")));
-        img[6] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/brook.png")));
-        img[7] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/wqueen.png")));
-        img[8] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/bqueen.png")));
-        img[9] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/wking.png")));
-        img[10] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
-        buf_img = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("img/bking.png")));
-        img[11] = buf_img.getScaledInstance(64, 64, BufferedImage.SCALE_SMOOTH);
+        initPlayers();
+        readPieceIcons();
+    }
 
-        Border border = BorderFactory.createLineBorder(Color.white, 5);
-        this.setBorder(border);
-        repaint();
-        players[0].computePossibleCaptures(board);
-        players[0].computePossibleMoves(board);
-        label = new JLabel();
-        label.setText("KONIEC GRY");
-        label.setForeground(new Color(0x3f3e3e));
-        label.setFont(new Font("MV Boli", Font.PLAIN, 50));
+    private void setEndOfGameLabel() {
+        endOfGameLabel = new JLabel();
+        endOfGameLabel.setText(END_OF_GAME_TEXT);
+        endOfGameLabel.setForeground(new Color(FOREGROUND_COLOR));
+        endOfGameLabel.setFont(new Font(FONT, Font.PLAIN, FONT_SIZE));
+        endOfGameLabel.setBounds(100, 60, 400, 400);
+        endOfGameLabel.setVisible(false);
         this.setLayout(null);
-        label.setBounds(100, 60, 400, 400);
-        this.add(label);
-        label.setVisible(false);
+        this.add(endOfGameLabel);
+    }
 
+    private void initPlayers() {
+        players = new Player[2];
+        players[0] = new Player(Constants.WHITE, KING_START_X, WHITE_KING_START_Y);
+        players[1] = new Player(Constants.BLACK, KING_START_X, BLACK_KING_START_Y);
+    }
+
+    private void readPieceIcons() throws IOException {
+        img = new Image[12];
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(WHITE_PAWN)));
+        img[0] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(BLACK_PAWN)));
+        img[1] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(WHITE_KNIGHT)));
+        img[2] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(BLACK_KNIGHT)));
+        img[3] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(WHITE_BISHOP)));
+        img[4] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(BLACK_BISHOP)));
+        img[5] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(WHITE_ROOK)));
+        img[6] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(BLACK_ROOK)));
+        img[7] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(WHITE_QUEEN)));
+        img[8] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(BLACK_QUEEN)));
+        img[9] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(WHITE_KING)));
+        img[10] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
+        pieceIcons = ImageIO.read(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(BLACK_KING)));
+        img[11] = pieceIcons.getScaledInstance(SQUARE_SIZE, SQUARE_SIZE, BufferedImage.SCALE_SMOOTH);
     }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (end) {
-            label.setVisible(true);
-        }
+        showEndGameLabelIfEnd();
+        paintBoard(g);
+        drawPieces(g);
+        drawPieceChooseMenuIfPawnReachBoardEnd(g);
+    }
 
-        boolean white = true;
+    private void drawPieceChooseMenuIfPawnReachBoardEnd(Graphics g) {
+        if (blackPawnReachBoardEnd()) {
+            drawBlackPieceToChoose(g);
+        } else {
+            drawWhitePieceToChoose(g);
+        }
+    }
+
+    private void showEndGameLabelIfEnd() {
+        if (isEnd) {
+            endOfGameLabel.setVisible(true);
+        }
+    }
+
+    private void drawWhitePieceToChoose(Graphics g) {
+        g.setColor(Color.lightGray);
+        g.fillRect(morphingPawnX * Constants.SQUARE_SIZE, 4 * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE, 4 * Constants.SQUARE_SIZE);
+        g.drawImage(img[2], morphingPawnX * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 4, this);
+        g.drawImage(img[4], morphingPawnX * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 5, this);
+        g.drawImage(img[6], morphingPawnX * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 6, this);
+        g.drawImage(img[8], morphingPawnX * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 7, this);
+    }
+
+    private void drawBlackPieceToChoose(Graphics g) {
+        g.setColor(Color.gray);
+        g.fillRect(morphingPawnX * Constants.SQUARE_SIZE, 0, Constants.SQUARE_SIZE, 4 * Constants.SQUARE_SIZE);
+        g.drawImage(img[9], morphingPawnX * Constants.SQUARE_SIZE, 0, this);
+        g.drawImage(img[7], morphingPawnX * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE, this);
+        g.drawImage(img[5], morphingPawnX * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 2, this);
+        g.drawImage(img[3], morphingPawnX * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 3, this);
+    }
+
+    private boolean blackPawnReachBoardEnd() {
+        return morphingPawnY == 0;
+    }
+
+    private void drawPieces(Graphics g) {
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
-                if (white) g.setColor(new Color(235, 235, 208));
-                else g.setColor(new Color(119, 148, 85));
-
-                g.fillRect(x * Constants.SQUARE_SIZE, y * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE, Constants.SQUARE_SIZE);
-                white = !white;
+                Piece piece = board.getSquare(x, y).getOccupyingPiece();
+                drawPiece(g, piece);
             }
-            white = !white;
         }
+    }
+
+    private void drawPiece(Graphics g, Piece piece) {
+        switch (piece.getType()) {
+            case 2 -> g.drawImage(img[0], piece.getX(),  piece.getY(), this);
+            case 3 -> g.drawImage(img[1], piece.getX(),  piece.getY(), this);
+            case 4 -> g.drawImage(img[4], piece.getX(),  piece.getY(), this);
+            case 5 -> g.drawImage(img[5], piece.getX(),  piece.getY(), this);
+            case 8 -> g.drawImage(img[2], piece.getX(),  piece.getY(), this);
+            case 9 -> g.drawImage(img[3], piece.getX(),  piece.getY(), this);
+            case 16 -> g.drawImage(img[6], piece.getX(), piece.getY(), this);
+            case 17 -> g.drawImage(img[7], piece.getX(), piece.getY(), this);
+            case 32 -> g.drawImage(img[10], piece.getX(), piece.getY(), this);
+            case 33 -> g.drawImage(img[11], piece.getX(), piece.getY(), this);
+            case 64 -> g.drawImage(img[8], piece.getX(), piece.getY(), this);
+            case 65 -> g.drawImage(img[9], piece.getX(), piece.getY(), this);
+        }
+    }
+
+    private void paintBoard(Graphics g) {
+        boolean isWhite = true;
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
-                Piece p = board.getSquare(x, y).getOccupyingPiece();
-
-                switch (board.getSquare(x, y).getOccupyingPiece().getType()) {
-                    case 2 -> g.drawImage(img[0], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 3 -> g.drawImage(img[1], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 4 -> g.drawImage(img[4], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 5 -> g.drawImage(img[5], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 8 -> g.drawImage(img[2], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 9 -> g.drawImage(img[3], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 16 -> g.drawImage(img[6], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 17 -> g.drawImage(img[7], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 32 -> g.drawImage(img[10], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 33 -> g.drawImage(img[11], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 64 -> g.drawImage(img[8], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                    case 65 -> g.drawImage(img[9], p.getX(), /* 7*Constants.SQUARE_SIZE - */ p.getY(), this);
-                }
+                paintSquare(g, isWhite);
+                g.fillRect(x * SQUARE_SIZE, y * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+                isWhite = !isWhite;
             }
+            isWhite = !isWhite;
         }
-        if (x_piece > -1) {
-            if (y_piece == 0) {
-                g.setColor(Color.gray);
-                g.fillRect(x_piece * Constants.SQUARE_SIZE, 0, Constants.SQUARE_SIZE, 4 * Constants.SQUARE_SIZE);
-                g.drawImage(img[9], x_piece * Constants.SQUARE_SIZE, 0, this);
-                g.drawImage(img[7], x_piece * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE, this);
-                g.drawImage(img[5], x_piece * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 2, this);
-                g.drawImage(img[3], x_piece * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 3, this);
-            } else {
-                g.setColor(Color.lightGray);
-                g.fillRect(x_piece * Constants.SQUARE_SIZE, 4 * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE, 4 * Constants.SQUARE_SIZE);
-                g.drawImage(img[2], x_piece * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 4, this);
-                g.drawImage(img[4], x_piece * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 5, this);
-                g.drawImage(img[6], x_piece * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 6, this);
-                g.drawImage(img[8], x_piece * Constants.SQUARE_SIZE, Constants.SQUARE_SIZE * 7, this);
-            }
+    }
+
+    private static void paintSquare(Graphics g, boolean isWhite) {
+        if (isWhite) {
+            g.setColor(WHITE_COLOR);
+        } else {
+            g.setColor(BLACK_COLOR);
         }
     }
 
     private class ClickListener extends MouseAdapter {
         public void mousePressed(MouseEvent e) {
-            if (choosing) {
-                int x = e.getX() / Constants.SQUARE_SIZE;
-                int y = e.getY() / Constants.SQUARE_SIZE;
-                if (x == x_piece) {
-                    choosing = false;
-                    if (y_piece == 0) {
-                        switch (y) {
-                            case 0 -> board.getSquare(x_piece, 0).setOccupyingPiece(new Queen(65, x_piece, 0));
-                            case 1 -> board.getSquare(x_piece, 0).setOccupyingPiece(new Queen(17, x_piece, 0));
-                            case 2 -> board.getSquare(x_piece, 0).setOccupyingPiece(new Queen(5, x_piece, 0));
-                            case 3 -> board.getSquare(x_piece, 0).setOccupyingPiece(new Queen(9, x_piece, 0));
-                            default -> choosing = true;
-                        }
-                    } else {
-                        switch (y) {
-                            case 7 -> board.getSquare(x_piece, 7).setOccupyingPiece(new Queen(64, x_piece, 7));
-                            case 6 -> board.getSquare(x_piece, 7).setOccupyingPiece(new Queen(16, x_piece, 7));
-                            case 5 -> board.getSquare(x_piece, 7).setOccupyingPiece(new Queen(4, x_piece, 7));
-                            case 4 -> board.getSquare(x_piece, 7).setOccupyingPiece(new Queen(8, x_piece, 7));
-                            default -> choosing = true;
-                        }
-
-                    }
-                }
-                if (!choosing) {
-                    repaint();
-                    x_piece = -1;
-                    y_piece = -1;
-                    players[TURN].clearMovesAndCaptures();
-                    if (TURN == 0) TURN++;
-                    else TURN--;
-                    players[TURN].computePossibleCaptures(board);
-                    players[TURN].computePossibleMoves(board);
-                    if (players[TURN].amILoose()) {
-                        end = true;
-                    }
-                }
+            int mouseX = e.getX() / Constants.SQUARE_SIZE;
+            int mouseY = e.getY() / Constants.SQUARE_SIZE;
+            if (isChoosingMorphedPiece) {
+                selectNewQueenIfValidMouseClick(mouseX, mouseY);
+                nextTurnIfMorphPieceSelected();
             } else {
-                int x = e.getX() / Constants.SQUARE_SIZE;
-                int y = e.getY() / Constants.SQUARE_SIZE;
-                prev_x = x;
-                prev_y = y;
-                if (players[TURN].findSourceSquare(x, y)) {
-                    selectedPiece = board.getOccupyingPiece(x, y);
-                }
+                selectPieceIfCanMove(mouseX, mouseY);
             }
         }
 
-        private boolean morph(int y) {
+        private boolean pawnReachedMorphSquare(int y) {
             if (selectedPiece.getType() == 2 && y == 7) return true;
             return selectedPiece.getType() == 3 && y == 0;
         }
 
         public void mouseReleased(MouseEvent e) {
             if (selectedPiece != null) {
-                int x = (selectedPiece.getX() + 32) / Constants.SQUARE_SIZE;
-                int y = (selectedPiece.getY() + 32) / Constants.SQUARE_SIZE;
-                if (players[TURN].findDestSquare(prev_x, prev_y, x, y)) {
-                    selectedPiece.setXY(x * Constants.SQUARE_SIZE, y * Constants.SQUARE_SIZE);
-                    board.executeMove(prev_x, prev_y, x, y, 0, 0);
-
-                    if (morph(y)) {
-                        x_piece = x;
-                        y_piece = y;
-                        choosing = true;
-                        selectedPiece = null;
-                        repaint();
-                    } else {
-                        if (selectedPiece.getType() == 32 || selectedPiece.getType() == 33) {
-                            players[TURN].setKingPosition(x, y);
-                        }
-
-                        selectedPiece = null;
-                        players[TURN].clearMovesAndCaptures();
-                        if (TURN == 0) TURN++;
-                        else TURN--;
-                        players[TURN].computePossibleCaptures(board);
-                        players[TURN].computePossibleMoves(board);
-                        if (players[TURN].amILoose()) {
-                            end = true;
-                        }
-                    }
+                int targetX = (selectedPiece.getX() + SQUARE_SIZE / 2) / SQUARE_SIZE;
+                int targetY = (selectedPiece.getY() + SQUARE_SIZE / 2) / SQUARE_SIZE;
+                if (players[TURN].canMoveFromCurrentToTarget(currentX, currentY, targetX, targetY)) {
+                    executeMove(targetX, targetY);
                 } else {
-                    selectedPiece.setXY(prev_x * Constants.SQUARE_SIZE, prev_y * Constants.SQUARE_SIZE);
-                    selectedPiece = null;
+                    uncheckPieceSelection();
                 }
                 repaint();
             }
         }
+
+        private void executeMove(int targetX, int targetY) {
+            selectedPiece.setXY(targetX * SQUARE_SIZE, targetY * SQUARE_SIZE);
+            board.executeMove(currentX, currentY, targetX, targetY, 0, 0);
+
+            if (pawnReachedMorphSquare(targetY)) {
+                morphingPawnX = targetX;
+                morphingPawnY = targetY;
+                isChoosingMorphedPiece = true;
+                selectedPiece = null;
+                repaint();
+            } else {
+                updateKingPositionIfNeeded(targetX, targetY);
+                prepareNextTurn();
+            }
+        }
+    }
+
+    private void selectPieceIfCanMove(int mouseX, int mouseY) {
+        currentX = mouseX;
+        currentY = mouseY;
+        if (players[TURN].anyMovesFromSquareExist(mouseX, mouseY)) {
+            selectedPiece = board.getOccupyingPiece(mouseX, mouseY);
+        }
+    }
+
+    private void nextTurnIfMorphPieceSelected() {
+        if (!isChoosingMorphedPiece) {
+            repaint();
+            morphingPawnX = -1;
+            morphingPawnY = -1;
+            prepareNextTurn();
+        }
+    }
+
+    private void selectNewQueenIfValidMouseClick(int mouseX, int mouseY) {
+        if (mouseX == morphingPawnX) { // clicked on the square with new piece menu
+            if (morphingPawnY == 0) {
+                chooseBlackMorphedPiece(mouseY);
+            } else {
+                chooseWhiteMorphedPiece(mouseY);
+            }
+        }
+    }
+
+    private void chooseWhiteMorphedPiece(int y) {
+        switch (y) {
+            case 7 -> placeNewWhiteQueen(PieceCodes.WHITE_QUEEN);
+            case 6 -> placeNewWhiteQueen(PieceCodes.WHITE_ROOK);
+            case 5 -> placeNewWhiteQueen(PieceCodes.WHITE_BISHOP);
+            case 4 -> placeNewWhiteQueen(PieceCodes.WHITE_KNIGHT);
+            default -> isChoosingMorphedPiece = true;
+        }
+    }
+
+    private void chooseBlackMorphedPiece(int y) {
+        switch (y) {
+            case 0 -> placeNewBlackQueen(PieceCodes.BLACK_QUEEN);
+            case 1 -> placeNewBlackQueen(PieceCodes.BLACK_ROOK);
+            case 2 -> placeNewBlackQueen(PieceCodes.BLACK_BISHOP);
+            case 3 -> placeNewBlackQueen(PieceCodes.BLACK_KNIGHT);
+            default -> isChoosingMorphedPiece = true;
+        }
+    }
+
+    private void placeNewBlackQueen(int pieceCode) {
+        board.getSquare(morphingPawnX, 0).setOccupyingPiece(new Queen(pieceCode, morphingPawnX, 0));
+        isChoosingMorphedPiece = false;
+    }
+
+    private void placeNewWhiteQueen(int pieceCode) {
+        board.getSquare(morphingPawnX, 7).setOccupyingPiece(new Queen(pieceCode, morphingPawnX, 7));
+        isChoosingMorphedPiece = false;
+    }
+
+    private void prepareNextTurn() {
+        changeTurn();
+        computeMovesForCurrentPlayer();
+        markIsEnd();
+    }
+
+    private void markIsEnd() {
+        if (players[TURN].amILoose()) {
+            isEnd = true;
+        }
+    }
+
+    private void computeMovesForCurrentPlayer() {
+        players[TURN].computePossibleCaptures(board);
+        players[TURN].computePossibleMoves(board);
+    }
+
+    private void changeTurn() {
+        players[TURN].clearMovesAndCaptures();
+        selectedPiece = null;
+
+        if (TURN == WHITE_TURN) {
+            TURN = BLACK_TURN;
+        }
+        else {
+            TURN = WHITE_TURN;
+        }
+    }
+
+    private void updateKingPositionIfNeeded(int targetX, int targetY) {
+        if (selectedPiece.getType() == PieceCodes.WHITE_KING || selectedPiece.getType() == PieceCodes.BLACK_KING) {
+            players[TURN].setKingPosition(targetX, targetY);
+        }
+    }
+
+    private void uncheckPieceSelection() {
+        selectedPiece.setXY(currentX * Constants.SQUARE_SIZE, currentY * Constants.SQUARE_SIZE);
+        selectedPiece = null;
     }
 
     private class DragListener extends MouseMotionAdapter {

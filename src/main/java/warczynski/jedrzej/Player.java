@@ -35,7 +35,6 @@ public class Player {
                     Vector<Point> legal_moves_from_here = b.getOccupyingPiece(x, y).getLegalMoves();
                     if (!legal_moves_from_here.isEmpty())
                         possible_moves.put(new Point(x, y), legal_moves_from_here);
-                    // possible_moves.put(new Point(x, y), b.getOccupyingPiece(x, y).getLegalMoves());
                 }
             }
         }
@@ -55,7 +54,7 @@ public class Player {
         }
     }
 
-    public boolean findSourceSquare(int x, int y) {
+    public boolean anyMovesFromSquareExist(int x, int y) {
         return possible_moves.keySet().stream().anyMatch(p -> p.x == x && p.y == y) || possible_captures.keySet().stream().anyMatch(p -> p.x == x && p.y == y);
     }
 
@@ -75,7 +74,7 @@ public class Player {
         return false;
     }
 
-    public boolean findDestSquare(int src_x, int src_y, int x, int y) {
+    public boolean canMoveFromCurrentToTarget(int src_x, int src_y, int x, int y) {
         if (findDestinationSquare(possible_captures, src_x, src_y, x, y)) return true;
         return findDestination(possible_moves, src_x, src_y, x, y);
     }
@@ -83,18 +82,6 @@ public class Player {
     public boolean amILoose() {
         if (!possible_moves.isEmpty()) return false;
         return possible_captures.isEmpty();
-/*         
-        for(Map.Entry<Point, Vector<Point>> entry: possible_moves.entrySet())
-        {
-            if(!entry.getValue().isEmpty()) return false;
-        }   
-        for(Map.Entry<Point, Vector<Point>> entry: possible_captures.entrySet())
-        {
-            if(!entry.getValue().isEmpty()) return false;
-        }
-        System.out.println("Check Mate!");   
-        return true;
- */
     }
 
     public void clearMovesAndCaptures() {

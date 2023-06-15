@@ -1,5 +1,7 @@
 package warczynski.jedrzej;
 
+import warczynski.jedrzej.constants.Constants;
+
 public class Square {
 
     private Piece occupyingPiece;
