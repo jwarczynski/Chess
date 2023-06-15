@@ -8,7 +8,7 @@ import javax.swing.*;
 class Main{
     public static void main(String[] args) throws IOException {
         
-        Chess game = new Chess();
+        UI game = new UI();
         JFrame frame = new JFrame("Chess");
         frame.add(game);
         ImageIcon image = new ImageIcon(Objects.requireNonNull(Main.class.getClassLoader().getResource("img/wknight.png")));
